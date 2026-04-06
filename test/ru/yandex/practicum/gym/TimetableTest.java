@@ -14,7 +14,7 @@ public class TimetableTest {
     private Timetable timetable;
     private Coach coach = new Coach("Васильев", "Николай", "Сергеевич");
     private Coach coach1 = new Coach("Петрова", "Вера", "Александровна");
-    private Group group =new Group("Акробатика для детей", Age.CHILD, 60);
+    private Group group = new Group("Акробатика для детей", Age.CHILD, 60);
     private TimeOfDay time13 = new TimeOfDay(13, 0);
     private TimeOfDay time20 = new TimeOfDay(20, 0);
     private TrainingSession trainingSession = new TrainingSession(group, coach,
@@ -23,26 +23,21 @@ public class TimetableTest {
     @BeforeEach
     public void beforeEach() {
         timetable = new Timetable();
-        timetable.addNewTrainingSession(trainingSession);
-    }
-
-    @Test
-    void testTimetableIsNotNull() {
-        //Проверить что расписание создано
-        assertNotNull(timetable);
     }
 
     @Test
     void testGetTrainingSessionsForDaySingleSession() {
+        timetable.addNewTrainingSession(trainingSession);
         //Проверить, что за понедельник вернулось одно занятие
         assertEquals(1, timetable.getTrainingSessionsForDay(MONDAY).size());
         assertEquals(1, timetable.getTrainingSessionsForDay(MONDAY).firstEntry().getValue().size());
         //Проверить, что за вторник не вернулось занятий
-        assertNull(timetable.getTrainingSessionsForDay(TUESDAY));
+        assertEquals(0, timetable.getTrainingSessionsForDay(TUESDAY).size());
     }
 
     @Test
     void testGetTrainingSessionsForDayMultipleSessions() {
+        timetable.addNewTrainingSession(trainingSession);
         Group groupAdult = new Group("Акробатика для взрослых", Age.ADULT, 90);
         TrainingSession thursdayAdultTrainingSession = new TrainingSession(groupAdult, coach,
                 DayOfWeek.THURSDAY, time20);
@@ -70,22 +65,36 @@ public class TimetableTest {
         assertEquals(1, timetable.getTrainingSessionsForDay(THURSDAY).get(time20).size());
 
         // Проверить, что за вторник не вернулось занятий
-        assertNull(timetable.getTrainingSessionsForDay(TUESDAY));
+        assertEquals(0, timetable.getTrainingSessionsForDay(TUESDAY).size());
     }
 
     @Test
     void testGetTrainingSessionsForDayAndTime() {
+        timetable.addNewTrainingSession(trainingSession);
         //Проверить, что за понедельник в 13:00 вернулось одно занятие
         assertEquals(1, timetable.getTrainingSessionsForDayAndTime(MONDAY, time13).size());
 
         //Проверить, что за понедельник в 14:00 не вернулось занятий
         TimeOfDay time14 = new TimeOfDay(14, 0);
-        assertNull(timetable.getTrainingSessionsForDayAndTime(MONDAY, time14));
+        assertEquals(0, timetable.getTrainingSessionsForDayAndTime(MONDAY, time14).size());
     }
 
+    @Test
+    void testGetTwoTrainingSessionsForDayAndTime() {
+        timetable.addNewTrainingSession(trainingSession);
+        //Проверить что за понедельник в 13:00 вернулось 2 занятия
+        Group groupAdult = new Group("Акробатика для взрослых", Age.ADULT, 90);
+        TrainingSession mondayAdultTrainingSession = new TrainingSession(groupAdult, coach1,
+                DayOfWeek.MONDAY, time13);
+
+        timetable.addNewTrainingSession(mondayAdultTrainingSession);
+
+        assertEquals(2, timetable.getTrainingSessionsForDayAndTime(MONDAY, time13).size());
+    }
 
     @Test
     void testGetCoach() {
+        timetable.addNewTrainingSession(trainingSession);
         //Проверить что в расписании правильно указан тренер
         ArrayList<TrainingSession> sessions = timetable.getTrainingSessionsForDayAndTime(MONDAY, time13);
         TrainingSession session = sessions.get(0);
@@ -94,6 +103,7 @@ public class TimetableTest {
 
     @Test
     void testGetGroup() {
+        timetable.addNewTrainingSession(trainingSession);
         //Проверить что в расписании правильно указана группа
         ArrayList<TrainingSession> sessions = timetable.getTrainingSessionsForDayAndTime(MONDAY, time13);
         TrainingSession session = sessions.get(0);
@@ -101,13 +111,15 @@ public class TimetableTest {
     }
 
     @Test
-    void testЕrainingsByCoachIsNotNull() {
+    void testTrainingsByCoachIsNotNull() {
+        timetable.addNewTrainingSession(trainingSession);
         //Проверить что список тренеров с количеством тренировок создан
         assertNotNull(timetable.countTrainingsByCoach());
     }
 
     @Test
     void testCountTrainingsByCoach() {
+        timetable.addNewTrainingSession(trainingSession);
         int trainingsCount = 0;
         Group groupAdult = new Group("Акробатика для взрослых", Age.ADULT, 90);
         TrainingSession thursdayAdultTrainingSession = new TrainingSession(groupAdult, coach,
@@ -124,8 +136,8 @@ public class TimetableTest {
         timetable.addNewTrainingSession(saturdayChildTrainingSession);
 
         //Проверить что у тренера 4 тренировки
-        for(CounterOfTrainings counter : timetable.countTrainingsByCoach()){
-            if(counter.getCoach().equals(coach)) {
+        for (CounterOfTrainings counter : timetable.countTrainingsByCoach()) {
+            if (counter.getCoach().equals(coach)) {
                 trainingsCount = counter.getTrainingsCount();
             }
         }
@@ -134,7 +146,7 @@ public class TimetableTest {
 
     @Test
     void testSortCountTrainingsByCoach() {
-        int trainingsCount = 0;
+        timetable.addNewTrainingSession(trainingSession);
         Group groupAdult = new Group("Акробатика для взрослых", Age.ADULT, 90);
         TrainingSession thursdayAdultTrainingSession = new TrainingSession(groupAdult, coach1,
                 DayOfWeek.THURSDAY, time20);
@@ -148,5 +160,12 @@ public class TimetableTest {
         assertTrue(sessionsCount.size() == 2);
         assertTrue(sessionsCount.get(0).getTrainingsCount() > sessionsCount.get(1).getTrainingsCount());
         assertEquals(coach1, sessionsCount.get(0).getCoach());
+    }
+
+        @Test
+        void testGetEmptyTimetable() {
+            for (DayOfWeek day : DayOfWeek.values()) {
+                assertEquals(0, timetable.getTrainingSessionsForDay(day).size());
+            }
         }
     }

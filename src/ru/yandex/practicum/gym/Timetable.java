@@ -14,10 +14,16 @@ public class Timetable {
     }
 
     public TreeMap<TimeOfDay, ArrayList<TrainingSession>> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
+        if(!timetable.containsKey(dayOfWeek)) {
+            return new TreeMap<>();
+        }
         return timetable.get(dayOfWeek);
     }
 
     public ArrayList<TrainingSession> getTrainingSessionsForDayAndTime(DayOfWeek dayOfWeek, TimeOfDay timeOfDay) {
+        if(!timetable.containsKey(dayOfWeek) || !timetable.get(dayOfWeek).containsKey(timeOfDay)) {
+            return new ArrayList<>();
+        }
         return timetable.get(dayOfWeek).get(timeOfDay);
     }
 
